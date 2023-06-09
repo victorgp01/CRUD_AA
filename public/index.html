@@ -17,6 +17,7 @@
       </div>
       <div style="margin-bottom: 2rem">
          <button id="btnSave" onclick="addNewUser()">Registrar</button>
+         <button id="btsClear" onclick="clearData()">Limpiar</button>
       </div>
 
       <table border="1" style="border-collapse: collapse; width: 300px">
@@ -35,6 +36,13 @@
          const urlApi = "http://localhost:3000";
          const tbody = document.getElementById("tbody");
          const btnSave = document.getElementById("btnSave");
+
+         function clearData() {
+            let username = document.getElementById("username");
+            let userphone = document.getElementById("userphone");
+            username.value = "";
+            userphone.value = "";
+         }
 
          async function getUsers() {
             try {
