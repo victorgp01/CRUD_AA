@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+   <head>
+      <meta charset="UTF-8" />
+      <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Document</title>
+   </head>
+
+   <body>
+      <h1>Users Dashboard</h1>
+      <div style="margin-bottom: 2rem">
+         <label for="">User</label><br />
+         <input type="text" autocomplete="off" id="username" /><br />
+         <label for="">Phone</label><br />
+         <input type="text" autocomplete="off" id="userphone" /><br />
+      </div>
+      <div style="margin-bottom: 2rem">
+         <button id="btnSave" onclick="addNewUser()">Registrar</button>
+      </div>
+
+      <table border="1" style="border-collapse: collapse; width: 300px">
+         <thead>
+            <tr style="text-align: left">
+               <th>#</th>
+               <th>Nombre</th>
+               <th>Telefono</th>
+               <th>Acciones</th>
+            </tr>
+         </thead>
+         <tbody id="tbody"></tbody>
+      </table>
+
+      <script>
+         const urlApi = "http://localhost:3000";
+         const tbody = document.getElementById("tbody");
+         const btnSave = document.getElementById("btnSave");
+
+         async function getUsers() {
+            try {
+               const response = await fetch(`${urlApi}/users`);
+               const jsonData = await response.json();
+
+               tbody.innerHTML = "";
+
+               jsonData.forEach((element) => {
+                  const rowData = { ...element };
+
+                  addRow(rowData);
+               });
+            } catch (ex) {}
+         }
+
+         function addRow(rowData) {
+            const tr = document.createElement("tr");
+
+            tr.innerHTML = `
+                   <td>${rowData.id}</td>
+                   <td>${rowData.name}</td>
+                   <td>${rowData.phone}</td>
+                   <td>
+                       <button onclick="eliminar(${rowData.id})">x</button>
+                       <button onclick="getValueForEditing(${rowData.id},'${rowData.name}','${rowData.phone}')">E</button>
+                   </td>
+               `;
+
+            tbody.appendChild(tr);
+         }
+
+         async function getValueForEditing(id, name, phone) {
+            const username = document.getElementById("username");
+            const userphone = document.getElementById("userphone");
+            username.value = name;
+            userphone.value = phone;
+            editingId = id;
+            btnSave.innerText = "Guardar Cambios";
+            btnSave.onclick = saveEditing;
+         }
+
+         async function saveEditing() {
+            const userData = {
+               name: username.value,
+               phone: userphone.value,
+            };
+
+            const myHeaders = new Headers();
+            myHeaders.append("Content-Type", "application/json");
+
+            const jsonBody = JSON.stringify(userData);
+
+            const requestOptions = {
+               method: "PUT",
+               body: jsonBody,
+               headers: myHeaders,
+            };
+            try {
+               const response = await fetch(
+                  `${urlApi}/users/${editingId}`,
+                  requestOptions
+               );
+
+               getUsers();
+            } catch (error) {
+               console.log(error);
+            }
+         }
+
+         async function eliminar(id) {
+            try {
+               const res = await fetch(`${urlApi}/users/${id}`, {
+                  method: "DELETE",
+                  headers: { "Content-Type": "application/json" },
+               });
+
+               getUsers();
+               alert(
+                  `El usuario con el id ${id} ha sido eliminado correctamente`
+               );
+            } catch (ex) {
+               console.log(Ex);
+               return "Error eliminando el usuario";
+            }
+         }
+
+         async function addNewUser() {
+            const username = document.getElementById("username");
+            const userphone = document.getElementById("userphone");
+
+            const userData = {
+               name: username.value,
+               phone: userphone.value,
+            };
+
+            const jsonBody = JSON.stringify(userData);
+
+            const myHeaders = new Headers();
+            myHeaders.append("Content-Type", "application/json");
+
+            const requestOptions = {
+               method: "POST",
+               body: jsonBody,
+               headers: myHeaders,
+            };
+
+            try {
+               const response = await fetch(`${urlApi}/users`, requestOptions);
+               const jsonData = await response.json();
+
+               const message = `El usuario ${jsonData.name} fue registrado correctamente`;
+
+               alert(message);
+
+               getUsers();
+            } catch (ex) {
+               alert("Ocurrio un error inesperado");
+            }
+         }
+
+         getUsers();
+      </script>
+   </body>
+</html>
